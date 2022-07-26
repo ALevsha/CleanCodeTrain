@@ -1,20 +1,22 @@
 package com.procourse.cleancodetrain.presentation
 
 import GetUserNameUseCase
-import SaveUserNameUseCase
+import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import com.procourse.cleancodetrain.R
+import com.procourse.cleancodetrain.data.repository.UserRepositoryImpl
 import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
 import com.procourse.cleancodetrain.domain.models.UserName
 
 class MainActivity : AppCompatActivity() {
 
-    private val getUserNameUseCase = GetUserNameUseCase()
-    private val saveUserNameUseCase = SaveUserNameUseCase()
+    private val userRepository = UserRepositoryImpl()
+    private val getUserNameUseCase = GetUserNameUseCase(userRepository = userRepository)
+    private val saveUserNameUseCase = SaveUserNameUseCase(userRepository = userRepository)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         sendButton.setOnClickListener{
             /*
             по клику на SaveDataButton берется текст, закидывается в параметр объекта модели
-            SaveUserNameParam и подаем на вход UseCase'а SaveUserNameUseCase. Результат выводится
+            SaveUserNameParam и подаем на вход UseCase'а com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase. Результат выводится
             в строку dataTextView
              */
             val text = dataEditView.text.toString()
