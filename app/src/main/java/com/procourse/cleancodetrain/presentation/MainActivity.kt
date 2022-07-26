@@ -1,7 +1,6 @@
 package com.procourse.cleancodetrain.presentation
 
 import GetUserNameUseCase
-import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -11,12 +10,16 @@ import com.procourse.cleancodetrain.R
 import com.procourse.cleancodetrain.data.repository.UserRepositoryImpl
 import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
 import com.procourse.cleancodetrain.domain.models.UserName
+import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
 
 class MainActivity : AppCompatActivity() {
 
-    private val userRepository = UserRepositoryImpl()
-    private val getUserNameUseCase = GetUserNameUseCase(userRepository = userRepository)
-    private val saveUserNameUseCase = SaveUserNameUseCase(userRepository = userRepository)
+    //this в контекст не передаем, т.к он связан с главным экраном.
+    // Лучше передавать репозиторию applicationContext
+    // by lazy {...} означает, что объект будет создан только в момент вызова ссылки на него
+    private val userRepository by lazy { UserRepositoryImpl(context = applicationContext) }
+    private val getUserNameUseCase by lazy { GetUserNameUseCase(userRepository = userRepository) }
+    private val saveUserNameUseCase by lazy { SaveUserNameUseCase(userRepository = userRepository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,9 +36,17 @@ class MainActivity : AppCompatActivity() {
             SaveUserNameParam и подаем на вход UseCase'а com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase. Результат выводится
             в строку dataTextView
              */
-            val text = dataEditView.text.toString()
-            val params = SaveUserNameParam(name = text)
-            val result: Boolean = saveUserNameUseCase.execute(param = params)
+            val fullName = dataEditView.text.toString().split(" ")
+            val fName = fullName[0]
+
+            val result: Boolean = saveUserNameUseCase.execute(param =
+            if(fName.isEmpty() || fullName.size == 1)
+                SaveUserNameParam(firsName = fName, lastName = "")
+            else {
+                val lName = fullName[1]
+                SaveUserNameParam(firsName = fName, lastName = lName)
+            }
+            )
             dataTextView.text = "Save result = $result"
 
             /* можно конечно же подать этот текст напрямую в поле, но тогда не будет понимания,
