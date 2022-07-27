@@ -14,12 +14,14 @@ import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
 
 class MainActivity : AppCompatActivity() {
 
-    //this в контекст не передаем, т.к он связан с главным экраном.
-    // Лучше передавать репозиторию applicationContext
-    // by lazy {...} означает, что объект будет создан только в момент вызова ссылки на него
-    private val userRepository by lazy { UserRepositoryImpl(context = applicationContext) }
-    private val getUserNameUseCase by lazy { GetUserNameUseCase(userRepository = userRepository) }
-    private val saveUserNameUseCase by lazy { SaveUserNameUseCase(userRepository = userRepository) }
+    /* this в контекст не передаем, т.к он связан с главным экраном.
+    Лучше передавать репозиторию applicationContext
+    by lazy {...} означает, что объект будет создан только в момент вызова ссылки на него
+    (LazyThreadSafetyMode.NONE) - значит, что потоки будут не синхронизированы с основным,
+    а будут выполняться в отдельных потоках после*/
+    private val userRepository by lazy(LazyThreadSafetyMode.NONE) { UserRepositoryImpl(context = applicationContext) }
+    private val getUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { GetUserNameUseCase(userRepository = userRepository) }
+    private val saveUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { SaveUserNameUseCase(userRepository = userRepository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
