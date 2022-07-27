@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.TextView
 import com.procourse.cleancodetrain.R
 import com.procourse.cleancodetrain.data.repository.UserRepositoryImpl
+import com.procourse.cleancodetrain.data.storage.sharedPrefs.SharedPrefUserStorage
 import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
 import com.procourse.cleancodetrain.domain.models.UserName
 import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
@@ -19,7 +20,13 @@ class MainActivity : AppCompatActivity() {
     by lazy {...} означает, что объект будет создан только в момент вызова ссылки на него
     (LazyThreadSafetyMode.NONE) - значит, что потоки будут не синхронизированы с основным,
     а будут выполняться в отдельных потоках после*/
-    private val userRepository by lazy(LazyThreadSafetyMode.NONE) { UserRepositoryImpl(context = applicationContext) }
+
+    /*
+    * слои общаются только через публичные интерфейсы*/
+    private val userStorage by lazy(LazyThreadSafetyMode.NONE) { SharedPrefUserStorage(context = applicationContext)}
+    private val userRepository by lazy(LazyThreadSafetyMode.NONE) { UserRepositoryImpl(userStorage) }
+
+    // UseCase'ы в конструктор берут только объект интерфейса, который создается через класс реализации???
     private val getUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { GetUserNameUseCase(userRepository = userRepository) }
     private val saveUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { SaveUserNameUseCase(userRepository = userRepository) }
 
@@ -43,10 +50,10 @@ class MainActivity : AppCompatActivity() {
 
             val result: Boolean = saveUserNameUseCase.execute(param =
             if(fName.isEmpty() || fullName.size == 1)
-                SaveUserNameParam(firsName = fName, lastName = "")
+                SaveUserNameParam(firstName = fName, lastName = "")
             else {
                 val lName = fullName[1]
-                SaveUserNameParam(firsName = fName, lastName = lName)
+                SaveUserNameParam(firstName = fName, lastName = lName)
             }
             )
             dataTextView.text = "Save result = $result"

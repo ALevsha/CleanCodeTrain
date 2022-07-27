@@ -1,43 +1,50 @@
 package com.procourse.cleancodetrain.data.repository
 
-import android.content.Context
+import com.procourse.cleancodetrain.data.storage.models.User
+import com.procourse.cleancodetrain.data.storage.UserStorage
 import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
 import com.procourse.cleancodetrain.domain.models.UserName
 import com.procourse.cleancodetrain.domain.repository.UserRepository
 
-//необходимо сохранить имя пользователя и получить имя пользователя
-// в data должна лежать реализация интерфейса репозитория, которая находится в domain слое
+/*необходимо сохранить имя пользователя и получить имя пользователя
+ в data должна лежать реализация интерфейса репозитория, которая находится в domain слое
+ репозиторий по своей сути является связующим звеном между domain и data, следовательно в нем
+ нельзя заниматься манипуляциями с данными, т.к при расширении репозиторий будет отвечать
+ за несколько функций, допустим отправка данных в интернет и сохранение в БД, что недопустимо
+ всё это необходимо вывести в отдельные классы, чтобы не нарушать SOLID- принципы.
+ Доп модели нагружают доп логику, но дают независимость*/
 
-private const val SHARED_PREFS_NAME = "shared_prefs_name"
-private const val KEY_FIRST_NAME = "firstName"
-private const val KEY_LAST_NAME = "lastName"
-private const val DEFAULT_NAME = "Default last name"
+/*
+* если надо добавить функционал отправки данных в сеть, то в параметрах класса
+* будет добавлен еще оджин объект, через который будет осущеспвлена отправка.
+* */
 
-class UserRepositoryImpl(private val context: Context):UserRepository {// наследуемся от UserRepository из domain-слоя
+class UserRepositoryImpl(private val userStorage: UserStorage
+/*(example), private val networkApi: NetworkApi*/):UserRepository {// наследуемся от UserRepository из domain-слоя
 
     // установка реальной реализации. Для использования SharedPreferences нужен context
-    val sharedPreferences = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE)
-
     override fun saveName(saveParam: SaveUserNameParam): Boolean{
-        if (saveParam.firsName.isEmpty() ||
-            (saveParam.firsName.isNotEmpty() && saveParam.lastName.isEmpty())) {
-            sharedPreferences.edit().putString(KEY_FIRST_NAME, saveParam.firsName).apply()
-            sharedPreferences.edit().putString(KEY_LAST_NAME, DEFAULT_NAME).apply()
-        }
-        else {
-            sharedPreferences.edit().putString(KEY_FIRST_NAME, saveParam.firsName).apply()
-            sharedPreferences.edit().putString(KEY_LAST_NAME, saveParam.lastName).apply()
-        }
+        val user = mapToStorage(saveParam)
+        val result = userStorage.save(user)
+        /*
+        * networkApi.sendData(...)
+        * */
+        return result
+    }
 
-    //.apply() ничего не возвращает (void) => просто вернем true
-    return true
-}
+    override fun getName(): UserName{
+        val user = userStorage.get()
 
-override fun getName(): UserName{
-    // м.б nullable => к доп. значению добавляем еще одно, если null через Elvis-оператор
-    val firsName = sharedPreferences.getString(KEY_FIRST_NAME, "") ?: ""
-    val lastName = sharedPreferences.getString(KEY_LAST_NAME, DEFAULT_NAME) ?: DEFAULT_NAME
+        val userName = mapToDomain(user)
 
-    return UserName(firstName = firsName, lastName = lastName)
-}
+        return userName
+    }
+
+    private fun mapToDomain(user: User): UserName{
+        return UserName(firstName = user.firstName, lastName = user.lastName)
+    }
+
+    private fun mapToStorage(saveParam: SaveUserNameParam): User{
+        return User(firstName = saveParam.firstName, lastName = saveParam.lastName)
+    }
 }
