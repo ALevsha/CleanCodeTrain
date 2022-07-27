@@ -1,7 +1,7 @@
-package com.procourse.cleancodetrain.domain.usecase
+package com.procourse.cleancodetest.domain.usecase
 
-import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
-import com.procourse.cleancodetrain.domain.repository.UserRepository
+import com.procourse.cleancodetest.domain.models.SaveUserNameParam
+import com.procourse.cleancodetest.domain.repository.UserRepository
 
 /* здесь получается полиморфизм. На вход приходит объект интерфейса, => реализация его неизвестна
  */

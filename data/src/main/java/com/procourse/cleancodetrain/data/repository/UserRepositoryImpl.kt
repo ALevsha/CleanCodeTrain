@@ -1,10 +1,10 @@
 package com.procourse.cleancodetrain.data.repository
 
+import com.procourse.cleancodetest.domain.models.SaveUserNameParam
+import com.procourse.cleancodetest.domain.models.UserName
+import com.procourse.cleancodetest.domain.repository.UserRepository
 import com.procourse.cleancodetrain.data.storage.models.User
 import com.procourse.cleancodetrain.data.storage.UserStorage
-import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
-import com.procourse.cleancodetrain.domain.models.UserName
-import com.procourse.cleancodetrain.domain.repository.UserRepository
 
 /*необходимо сохранить имя пользователя и получить имя пользователя
  в data должна лежать реализация интерфейса репозитория, которая находится в domain слое
@@ -20,7 +20,7 @@ import com.procourse.cleancodetrain.domain.repository.UserRepository
 * */
 
 class UserRepositoryImpl(private val userStorage: UserStorage
-/*(example), private val networkApi: NetworkApi*/):UserRepository {// наследуемся от UserRepository из domain-слоя
+/*(example), private val networkApi: NetworkApi*/): UserRepository {// наследуемся от UserRepository из domain-слоя
 
     // установка реальной реализации. Для использования SharedPreferences нужен context
     override fun saveName(saveParam: SaveUserNameParam): Boolean{
@@ -32,7 +32,7 @@ class UserRepositoryImpl(private val userStorage: UserStorage
         return result
     }
 
-    override fun getName(): UserName{
+    override fun getName(): UserName {
         val user = userStorage.get()
 
         val userName = mapToDomain(user)

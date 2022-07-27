@@ -1,5 +1,5 @@
-import com.procourse.cleancodetrain.domain.models.UserName
-import com.procourse.cleancodetrain.domain.repository.UserRepository
+import com.procourse.cleancodetest.domain.models.UserName
+import com.procourse.cleancodetest.domain.repository.UserRepository
 
 class GetUserNameUseCase(private val userRepository: UserRepository) {
 
