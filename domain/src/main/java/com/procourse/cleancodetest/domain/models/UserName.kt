@@ -1,4 +1,4 @@
-package com.procourse.cleancodetrain.domain.models
+package com.procourse.cleancodetest.domain.models
 
 data class UserName(
     val firstName: String,

@@ -9,9 +9,9 @@ import android.widget.TextView
 import com.procourse.cleancodetrain.R
 import com.procourse.cleancodetrain.data.repository.UserRepositoryImpl
 import com.procourse.cleancodetrain.data.storage.sharedPrefs.SharedPrefUserStorage
-import com.procourse.cleancodetrain.domain.models.SaveUserNameParam
-import com.procourse.cleancodetrain.domain.models.UserName
-import com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase
+import com.procourse.cleancodetest.domain.models.SaveUserNameParam
+import com.procourse.cleancodetest.domain.models.UserName
+import com.procourse.cleancodetest.domain.usecase.SaveUserNameUseCase
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,9 +22,10 @@ class MainActivity : AppCompatActivity() {
     а будут выполняться в отдельных потоках после*/
 
     /*
-    * слои общаются только через публичные интерфейсы*/
-    private val userStorage by lazy(LazyThreadSafetyMode.NONE) { SharedPrefUserStorage(context = applicationContext)}
-    private val userRepository by lazy(LazyThreadSafetyMode.NONE) { UserRepositoryImpl(userStorage) }
+    * слои общаются только через публичные интерфейсы
+    * */
+    private val userRepository by lazy(LazyThreadSafetyMode.NONE) {
+        UserRepositoryImpl(userStorage = SharedPrefUserStorage(context = applicationContext)) }
 
     // UseCase'ы в конструктор берут только объект интерфейса, который создается через класс реализации???
     private val getUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { GetUserNameUseCase(userRepository = userRepository) }
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         sendButton.setOnClickListener{
             /*
             по клику на SaveDataButton берется текст, закидывается в параметр объекта модели
-            SaveUserNameParam и подаем на вход UseCase'а com.procourse.cleancodetrain.domain.usecase.SaveUserNameUseCase. Результат выводится
+            SaveUserNameParam и подаем на вход UseCase'а com.procourse.cleancodetest.domain.usecase.SaveUserNameUseCase. Результат выводится
             в строку dataTextView
              */
             val fullName = dataEditView.text.toString().split(" ")
