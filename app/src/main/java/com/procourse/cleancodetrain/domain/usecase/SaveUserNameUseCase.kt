@@ -18,7 +18,7 @@ class SaveUserNameUseCase(private val userRepository: UserRepository) {
     fun execute(param: SaveUserNameParam): Boolean{
         val oldUserName = userRepository.getName()
 
-        if (oldUserName.firstName == param.firsName && oldUserName.lastName == param.lastName)
+        if (oldUserName.firstName == param.firstName && oldUserName.lastName == param.lastName)
             return true
 
         val result: Boolean = userRepository.saveName(saveParam = param)
