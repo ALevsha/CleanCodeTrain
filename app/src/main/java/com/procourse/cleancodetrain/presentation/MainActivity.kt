@@ -3,9 +3,12 @@ package com.procourse.cleancodetrain.presentation
 import GetUserNameUseCase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.procourse.cleancodetrain.R
 import com.procourse.cleancodetrain.data.repository.UserRepositoryImpl
 import com.procourse.cleancodetrain.data.storage.sharedPrefs.SharedPrefUserStorage
@@ -13,67 +16,55 @@ import com.procourse.cleancodetest.domain.models.SaveUserNameParam
 import com.procourse.cleancodetest.domain.models.UserName
 import com.procourse.cleancodetest.domain.usecase.SaveUserNameUseCase
 
+/*
+Для нормальной работы ViewModel MainActivity нужно наследовать не от Activity, а от
+AppCompatActivity
+ */
 class MainActivity : AppCompatActivity() {
 
-    /* this в контекст не передаем, т.к он связан с главным экраном.
-    Лучше передавать репозиторию applicationContext
-    by lazy {...} означает, что объект будет создан только в момент вызова ссылки на него
-    (LazyThreadSafetyMode.NONE) - значит, что потоки будут не синхронизированы с основным,
-    а будут выполняться в отдельных потоках после*/
 
-    /*
-    * слои общаются только через публичные интерфейсы
-    * */
-    private val userRepository by lazy(LazyThreadSafetyMode.NONE) {
-        UserRepositoryImpl(userStorage = SharedPrefUserStorage(context = applicationContext)) }
-
-    // UseCase'ы в конструктор берут только объект интерфейса, который создается через класс реализации???
-    private val getUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { GetUserNameUseCase(userRepository = userRepository) }
-    private val saveUserNameUseCase by lazy(LazyThreadSafetyMode.NONE) { SaveUserNameUseCase(userRepository = userRepository) }
+    private lateinit var vm: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        Log.e("AAA", "Activity created")
+
+        // фабрика - прослойка для передачи контекста при создании ViewModel
+        vm = ViewModelProvider(this, MainViewModelFactory(this))
+            .get(MainViewModel::class.java)
+        /* ViewModelProvider возвращает ссылку на MainViewModel, если модель
+        * уже была создана, иначе создает объект MainViewModel. Т.о MainViewModel
+        * является SingleTone'ом в рамках жизненного цикла Activity */
 
         val dataTextView = findViewById<TextView>(R.id.dataTextView)
         val dataEditView = findViewById<EditText>(R.id.dataEditText)
         val sendButton = findViewById<Button>(R.id.sendButton)
         val receiveButton = findViewById<Button>(R.id.receiveButton)
 
-        sendButton.setOnClickListener{
+        /*
+        observe - подписка на изменение данных. LiveData сама отпишется в противоположном
+        методе, если вызвана в onCreate, то отпишется в onDestroy и т.п
+         */
+        vm.resultLiveData.observe(this, Observer {
             /*
-            по клику на SaveDataButton берется текст, закидывается в параметр объекта модели
-            SaveUserNameParam и подаем на вход UseCase'а com.procourse.cleancodetest.domain.usecase.SaveUserNameUseCase. Результат выводится
-            в строку dataTextView
+            Все, что внутри Observer'a будет работать, когда LiveData изменится.
+            Также он отработает, если в LiveData есть данные, допустим, при повороте экрана
              */
+            dataTextView.text = it
+        })
+
+        sendButton.setOnClickListener {
             val fullName = dataEditView.text.toString().split(" ")
-            val fName = fullName[0]
-
-            val result: Boolean = saveUserNameUseCase.execute(param =
-            if(fName.isEmpty() || fullName.size == 1)
-                SaveUserNameParam(firstName = fName, lastName = "")
-            else {
-                val lName = fullName[1]
-                SaveUserNameParam(firstName = fName, lastName = lName)
-            }
-            )
-            dataTextView.text = "Save result = $result"
-
-            /* можно конечно же подать этот текст напрямую в поле, но тогда не будет понимания,
-            что это за текст. Эта проблема решается наличием модели данных в которой обозначено,
-            что этот текс тявляется ex. именем пользователя. В этом случае логика приложения будет
-            быстрее пониматься (скорее всего оно будет весьма большим). Не всегда короткий код
-            является понятным
-             */
+            vm.save(fullName)
         }
 
         receiveButton.setOnClickListener {
-            //по клику на GetDataButton в текстовом поле выводится объект userName
-            val userName: UserName = getUserNameUseCase.execute()
-            dataTextView.text = "${userName.firstName} ${userName.lastName}"
-            /* основная задача presentation слоя - вывод данных и забор данных от пользователя.
-            Более серьезной логики в нем быть НЕ ДОЛЖНО!!!
-             */
+            vm.load()
         }
+        /*
+        Activity полностью делегирует всю логику ViewModel и лишь выводит данные
+         */
     }
 }
